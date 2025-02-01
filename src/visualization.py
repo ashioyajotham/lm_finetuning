@@ -10,9 +10,12 @@ import threading
 import webbrowser
 import time
 import numpy as np
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import wandb
 import os
+from sklearn.manifold import TSNE
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 class TrainingVisualizer:
     def __init__(self, training_args, model_name: str, model=None, viz_config=None):
@@ -42,18 +45,24 @@ class TrainingVisualizer:
             self._launch_tensorboard()
             
         if self.viz_config['use_wandb']:
-            # Initialize wandb with more detailed config
+            # Force wandb to use correct project
+            os.environ['WANDB_PROJECT'] = 'lm-finetuning'
+            os.environ['WANDB_ENTITY'] = 'ashioyajotham'
+            
+            # Create standardized run name
+            run_name = f"{model_name}-{time.strftime('%Y%m%d-%H%M%S')}"
+            
             self.wandb_run = wandb.init(
-                project=self.viz_config['wandb_project'],
-                name=f"{model_name}-{time.strftime('%Y%m%d-%H%M%S')}",
+                project='lm-finetuning',
+                entity='ashioyajotham',
+                name=run_name,  # Use explicit run name instead of default ./results
                 config={
                     "model_name": model_name,
                     "training_args": vars(training_args),
                     "viz_config": self.viz_config,
                     "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
                 },
-                notes="Language model fine-tuning run",
-                tags=["fine-tuning", model_name],
+                resume=True
             )
             
             # Only watch model if it's provided
@@ -108,6 +117,58 @@ class TrainingVisualizer:
             self.wandb_run.log({
                 "text_samples": wandb.Html(f"<b>Prompt:</b> {prompt}<br><b>Generated:</b> {generated}")
             }, step=step)
+
+    def visualize_attention_patterns(self, layer_idx: int, attention_maps: torch.Tensor):
+        """Visualize cross-attention patterns for transformer layers"""
+        if self.writer:
+            fig, ax = plt.subplots(figsize=(10, 10))
+            sns.heatmap(attention_maps.detach().cpu().numpy(), ax=ax)
+            self.writer.add_figure(f'attention_pattern_layer_{layer_idx}', fig)
+        if self.wandb_run:
+            wandb.log({f'attention_pattern_layer_{layer_idx}': wandb.Image(fig)})
+
+    def log_embedding_space(self, embeddings: torch.Tensor, labels: List[str], step: int):
+        """Visualize embedding space using t-SNE"""
+        tsne = TSNE(n_components=2, random_state=42)
+        embeddings_2d = tsne.fit_transform(embeddings.detach().cpu().numpy())
+        
+        fig, ax = plt.subplots(figsize=(10, 10))
+        scatter = ax.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1])
+        if self.writer:
+            self.writer.add_figure('embedding_space', fig, step)
+        if self.wandb_run:
+            wandb.log({'embedding_space': wandb.Image(fig)}, step=step)
+
+    def log_research_metrics(self, 
+                           compression_ratio: float,
+                           knowledge_retention: float,
+                           fine_tuning_stability: float,
+                           step: int):
+        """Log research-specific metrics"""
+        metrics = {
+            'compression_ratio': compression_ratio,
+            'knowledge_retention': knowledge_retention,
+            'fine_tuning_stability': fine_tuning_stability
+        }
+        
+        if self.writer:
+            for name, value in metrics.items():
+                self.writer.add_scalar(f'research_metrics/{name}', value, step)
+        if self.wandb_run:
+            wandb.log(metrics, step=step)
+
+    def log_layer_gradients(self, named_parameters: Dict[str, torch.Tensor], step: int):
+        """Track layer-wise gradient magnitudes"""
+        grad_norms = {}
+        for name, param in named_parameters:
+            if param.grad is not None:
+                grad_norms[f'gradient_norm/{name}'] = torch.norm(param.grad).item()
+        
+        if self.writer:
+            for name, norm in grad_norms.items():
+                self.writer.add_scalar(name, norm, step)
+        if self.wandb_run:
+            wandb.log(grad_norms, step=step)
 
     def close(self):
         """Clean up visualization resources"""
