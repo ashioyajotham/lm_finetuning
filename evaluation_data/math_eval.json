@@ -1,0 +1,107 @@
+{
+    "math": [
+        {
+            "category": "arithmetic",
+            "question": "If you have 5 apples and each apple costs $2.30, how much do all apples cost?",
+            "answer": "11.50",
+            "steps": [
+                "Identify the number of apples: 5",
+                "Identify the cost per apple: $2.30",
+                "Multiply: 5 × $2.30 = $11.50"
+            ]
+        },
+        {
+            "category": "algebra",
+            "question": "If 2x + 5 = 13, what is the value of x?",
+            "answer": "4",
+            "steps": [
+                "Subtract 5 from both sides: 2x = 8",
+                "Divide both sides by 2: x = 4"
+            ]
+        },
+        {
+            "category": "word_problem",
+            "question": "A train travels at 60 mph. How far will it travel in 2.5 hours?",
+            "answer": "150",
+            "steps": [
+                "Identify speed: 60 mph",
+                "Identify time: 2.5 hours",
+                "Use distance formula: distance = speed × time",
+                "Calculate: 60 × 2.5 = 150 miles"
+            ]
+        },
+        {
+            "category": "percentages",
+            "question": "What is 15% of 80?",
+            "answer": "12",
+            "steps": [
+                "Convert percentage to decimal: 15% = 0.15",
+                "Multiply: 80 × 0.15 = 12"
+            ]
+        },
+        {
+            "category": "probability",
+            "question": "In a bag with 3 red marbles and 7 blue marbles, what is the probability of drawing a red marble?",
+            "answer": "0.3",
+            "steps": [
+                "Count total marbles: 3 + 7 = 10 marbles",
+                "Count favorable outcomes: 3 red marbles",
+                "Divide: 3/10 = 0.3"
+            ]
+        },
+        {
+            "category": "geometry",
+            "question": "What is the area of a rectangle with length 8 meters and width 5 meters?",
+            "answer": "40",
+            "steps": [
+                "Identify length: 8 meters",
+                "Identify width: 5 meters",
+                "Use area formula: area = length × width",
+                "Calculate: 8 × 5 = 40 square meters"
+            ]
+        },
+        {
+            "category": "sequences",
+            "question": "In the sequence 2, 4, 8, 16, ..., what is the next number?",
+            "answer": "32",
+            "steps": [
+                "Observe pattern: each number is doubled",
+                "Take last number: 16",
+                "Double it: 16 × 2 = 32"
+            ]
+        },
+        {
+            "category": "multi_step",
+            "question": "A store offers a 20% discount on a $100 item. If you have to pay 8% sales tax, what is the final price?",
+            "answer": "86.40",
+            "steps": [
+                "Calculate discount: 20% of $100 = $20",
+                "Subtract discount: $100 - $20 = $80",
+                "Calculate tax: 8% of $80 = $6.40",
+                "Add tax: $80 + $6.40 = $86.40"
+            ]
+        },
+        {
+            "category": "ratios",
+            "question": "If it takes 3 workers 4 hours to complete a task, how many hours would it take 6 workers?",
+            "answer": "2",
+            "steps": [
+                "Understand inverse relationship",
+                "Set up proportion: 3 workers × 4 hours = 6 workers × x hours",
+                "Solve: 12 = 6x",
+                "Therefore: x = 2 hours"
+            ]
+        },
+        {
+            "category": "logic",
+            "question": "If all even numbers are divisible by 2, and x is divisible by 2, is x even? Explain your reasoning.",
+            "answer": "yes",
+            "steps": [
+                "Given: All even numbers are divisible by 2",
+                "Given: x is divisible by 2",
+                "Apply definition: Numbers divisible by 2 are even",
+                "Conclude: Therefore, x must be even"
+            ]
+        }
+    ]
+}
