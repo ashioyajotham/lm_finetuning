@@ -5,7 +5,9 @@ This module contains dataclasses that define the configuration parameters
 for model training and dataset processing.
 """
 
+import os
 from dataclasses import dataclass
+from dotenv import load_dotenv
 
 @dataclass
 class TrainingConfig:
@@ -94,13 +96,24 @@ class VisualizationConfig:
     
     Attributes:
         use_wandb (bool): Whether to use Weights & Biases
-        wandb_project (str): Project name for W&B
-        wandb_entity (str): Entity name for W&B
         use_tensorboard (bool): Whether to use TensorBoard
         viz_port (int): Port for TensorBoard server
     """
+    def __post_init__(self):
+        # Load environment variables
+        load_dotenv()
+        
+        # Set wandb config from environment without defaults
+        self.wandb_project = os.getenv('WANDB_PROJECT')
+        self.wandb_entity = os.getenv('WANDB_ENTITY')
+        
+        # Validate wandb settings if enabled
+        if self.use_wandb:
+            if not all([os.getenv('WANDB_API_KEY'), 
+                       self.wandb_project, 
+                       self.wandb_entity]):
+                raise ValueError("Missing required WANDB environment variables")
+    
     use_wandb: bool = True
-    wandb_project: str = "lm-finetuning"
-    wandb_entity: str = "ashioyajotham"
     use_tensorboard: bool = True
     viz_port: int = 6006
