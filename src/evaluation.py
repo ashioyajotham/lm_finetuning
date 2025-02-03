@@ -5,7 +5,8 @@ Evaluation utilities for language model assessment.
 import torch
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple, Callable
-from datasets import load_dataset, load_metric
+from datasets import load_dataset
+import evaluate
 import json
 import math
 import re
@@ -20,7 +21,7 @@ class NLGMetrics:
     """Standard NLG metrics implementation"""
     def __init__(self):
         self.rouge_scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
-        self.meteor = load_metric('meteor')
+        self.meteor = evaluate.load('meteor')  # Change this line
         self.smooth = SmoothingFunction().method1
 
     def compute_metrics(self, generated: str, reference: str) -> Dict[str, float]:

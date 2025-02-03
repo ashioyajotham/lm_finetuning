@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Tuple, Union, Any
 from torch.utils.data import Dataset
 import numpy as np
 from transformers.trainer_utils import EvalPrediction
+from datetime import datetime
 
 # Custom imports
 from .visualization import TrainingVisualizer
@@ -50,6 +51,7 @@ class CustomTrainer(Trainer):
             model=self.model,  # Pass the model instance
             viz_config=viz_config
         )
+        self.evaluator = ModelEvaluator(self.model, self.tokenizer)
 
     def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         """
@@ -283,6 +285,56 @@ class CustomTrainer(Trainer):
         if hasattr(self, 'visualizer'):
             self.visualizer.log_metrics(results, self.state.global_step)
         
+        return results
+
+    def run_structured_evaluation(self, eval_examples: dict, workflow_config: dict) -> dict:
+        """Run structured evaluation based on workflow configuration"""
+        results = {
+            'model_name': self.model.config._name_or_path,
+            'dataset_name': 'evaluation_set',
+            'automatic_metrics': {},
+            'task_specific': {},
+            'examples': [],
+            'timestamps': {
+                'start': datetime.now().isoformat()
+            }
+        }
+        
+        # Run automatic metrics if configured
+        if workflow_config.get('run_automatic_metrics'):
+            for metric in workflow_config['metrics']['standard_nlg']:
+                if metric == 'perplexity':
+                    perplexity_scores = []
+                    config = workflow_config.get('perplexity_config', {})
+                    for example in eval_examples['math']:
+                        score = self.evaluator.calculate_perplexity(
+                            example['question'], 
+                            stride=config.get('stride', 512)
+                        )
+                        perplexity_scores.append(score)
+                    
+                    results['automatic_metrics']['perplexity'] = {
+                        'scores': perplexity_scores,
+                        'mean': np.mean(perplexity_scores),
+                        'std': np.std(perplexity_scores)
+                    }
+        
+        # Run task-specific evaluations
+        for task in workflow_config['metrics']['task_specific']:
+            if task == 'math' and 'math' in eval_examples:
+                results['task_specific']['math'] = self.evaluator.evaluate_mathematical_reasoning(
+                    eval_examples['math']
+                )
+        
+        # Store example generations
+        for example in eval_examples['math'][:5]:  # Store first 5 examples
+            generated = self.evaluator.generate_solution(example['question'])
+            results['examples'].append({
+                'input': example['question'],
+                'generated': generated
+            })
+        
+        results['timestamps']['end'] = datetime.now().isoformat()
         return results
 
     def __del__(self):
