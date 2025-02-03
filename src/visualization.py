@@ -89,21 +89,41 @@ class TrainingVisualizer:
                 print(f"Failed to initialize wandb: {e}")
                 self.viz_config['use_wandb'] = False
 
+    def _find_free_port(self, start_port=6006):
+        """Find a free port starting from the given port number"""
+        import socket
+        port = start_port
+        while port < start_port + 100:  # Try 100 ports
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(('', port))
+                    return port
+            except OSError:
+                port += 1
+        raise RuntimeError("Could not find a free port")
+
     def _launch_tensorboard(self):
         """Launch TensorBoard server in background"""
-        def run_tensorboard():
-            subprocess.run([
-                "tensorboard",
-                "--logdir", self.training_args.logging_dir,
-                "--port", str(self.viz_config['viz_port'])
-            ])
+        try:
+            port = self._find_free_port()
+            self.viz_config['viz_port'] = port
+            
+            def run_tensorboard():
+                subprocess.run([
+                    "tensorboard",
+                    "--logdir", self.training_args.logging_dir,
+                    "--port", str(port)
+                ], stderr=subprocess.PIPE)  # Suppress error output
 
-        thread = threading.Thread(target=run_tensorboard, daemon=True)
-        thread.start()
-        
-        # Wait a moment for server to start
-        time.sleep(3)
-        webbrowser.open(f"http://localhost:{self.viz_config['viz_port']}")
+            thread = threading.Thread(target=run_tensorboard, daemon=True)
+            thread.start()
+            
+            # Wait a moment for server to start
+            time.sleep(3)
+            webbrowser.open(f"http://localhost:{port}")
+        except Exception as e:
+            print(f"TensorBoard launch failed: {e}")
+            self.viz_config['use_tensorboard'] = False
 
     def log_metrics(self, metrics: Dict[str, float], step: int):
         """Log metrics to all active visualization tools"""

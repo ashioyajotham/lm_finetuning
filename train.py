@@ -165,20 +165,39 @@ def main(args):
             print(f"{metric}: {value:.4f}")
             
     elif args.mode == "generate":
+        # Add generation configuration
+        gen_config = {
+            "max_length": args.max_length or 150,
+            "temperature": args.temperature or 0.9,
+            "top_k": args.top_k or 50,
+            "top_p": args.top_p or 0.95,
+            "do_sample": True,  # Enable sampling
+            "pad_token_id": tokenizer.eos_token_id,
+            "num_return_sequences": 1
+        }
+
         prompts = [args.prompt] if args.prompt else [
             "Once upon a time",
             "The scientist discovered",
             "In the future"
         ]
+        
         for prompt in prompts:
-            generated = trainer.generate_text(
-                prompt,
-                max_length=args.max_length or 150,
-                temperature=args.temperature or 0.9,
-                top_k=args.top_k or 50,
-                top_p=args.top_p or 0.95,
+            # Encode prompt
+            inputs = tokenizer(prompt, return_tensors="pt")
+            
+            # Generate
+            outputs = model.generate(
+                **inputs,
+                **gen_config
             )
-            print(f"\nPrompt: {prompt}\nGenerated: {generated}\n{'-'*50}")
+            
+            # Decode and remove prompt from output
+            generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            if prompt in generated_text:
+                generated_text = generated_text[len(prompt):].strip()
+            
+            print(f"\nPrompt: {prompt}\nGenerated: {generated_text}\n{'-'*50}")
     else:
         # Training modes
         trainer.train(resume_from_checkpoint=args.continue_from)
