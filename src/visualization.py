@@ -25,7 +25,15 @@ class TrainingVisualizer:
         self.model_name = model_name
         self.model = model
         self.writer = None
-        self.wandb_run = None  # Initialize attribute
+        self.wandb_run = None
+
+        # Create necessary directories
+        os.makedirs(training_args.logging_dir, exist_ok=True)
+        os.makedirs(training_args.output_dir, exist_ok=True)
+        
+        # Set run name early to ensure consistency
+        self.run_name = f"{model_name}-{time.strftime('%Y%m%d-%H%M%S')}"
+        training_args.run_name = self.run_name  # Override default './results'
         
         # Load environment variables
         load_dotenv()
@@ -43,18 +51,24 @@ class TrainingVisualizer:
             self.viz_config.update(viz_config)
         
         if self.viz_config['use_tensorboard']:
-            self.writer = SummaryWriter(training_args.logging_dir)
-            self._launch_tensorboard()
+            try:
+                self.writer = SummaryWriter(training_args.logging_dir)
+                self._launch_tensorboard()
+            except Exception as e:
+                print(f"Failed to initialize tensorboard: {e}")
+                self.viz_config['use_tensorboard'] = False
             
         if self.viz_config['use_wandb']:
             try:
-                run_name = f"{model_name}-{time.strftime('%Y%m%d-%H%M%S')}"
-                # Override the run_name in training_args
-                training_args.run_name = run_name  # Add this line
+                # Clear any existing wandb cache
+                if os.path.exists(os.path.join(training_args.output_dir, "wandb")):
+                    import shutil
+                    shutil.rmtree(os.path.join(training_args.output_dir, "wandb"))
+                
                 self.wandb_run = wandb.init(
-                    project=None,  # Explicitly set to None to avoid defaults
-                    entity=None,   # Explicitly set to None to avoid defaults
-                    name=run_name,
+                    project=None,
+                    entity=None,
+                    name=self.run_name,  # Use consistently set run_name
                     dir=training_args.output_dir,
                     job_type='training',
                     config={
@@ -63,12 +77,14 @@ class TrainingVisualizer:
                         "viz_config": self.viz_config
                     },
                     settings=wandb.Settings(start_method="thread"),
-                    reinit=True,
-                    resume=True
+                    reinit=True
                 )
-                # Force wandb to use the run name as is
+                
+                # Ensure wandb uses our run name
                 if self.wandb_run:
-                    self.wandb_run.save()
+                    wandb.run.name = self.run_name
+                    wandb.run.save()
+                    
             except Exception as e:
                 print(f"Failed to initialize wandb: {e}")
                 self.viz_config['use_wandb'] = False
