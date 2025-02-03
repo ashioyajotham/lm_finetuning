@@ -152,17 +152,23 @@ def main(args):
         if not args.eval_file:
             raise ValueError("--eval_file required for evaluation mode")
             
+        # Load workflow configuration
+        with open(args.eval_workflow) as f:
+            workflow_config = json.load(f)
+            
         # Load evaluation examples
         with open(args.eval_file) as f:
             eval_examples = json.load(f)
             
-        # Run evaluations
-        results = trainer.run_evaluations(eval_examples)
+        # Run structured evaluation
+        results = trainer.run_structured_evaluation(eval_examples, workflow_config)
         
-        # Print results
+        # Print detailed results
         print("\nEvaluation Results:")
-        for metric, value in results.items():
-            print(f"{metric}: {value:.4f}")
+        for category, metrics in results.items():
+            print(f"\n{category.upper()}:")
+            for metric, value in metrics.items():
+                print(f"  {metric}: {value:.4f}")
             
     elif args.mode == "generate":
         # Add generation configuration
@@ -178,8 +184,10 @@ def main(args):
 
         prompts = [args.prompt] if args.prompt else [
             "Once upon a time",
-            "The scientist discovered",
-            "In the future"
+            "In a world where",
+            "In the future",
+            "Lock in",
+            "Building and accelerating"
         ]
         
         for prompt in prompts:
@@ -256,6 +264,9 @@ Examples:
     # Evaluation arguments
     parser.add_argument("--eval_file", type=str,
                       help="JSON file containing evaluation examples")
+    parser.add_argument("--eval_workflow", type=str,
+                      help="Path to evaluation workflow configuration",
+                      default="evaluation_workflows/default_workflow.json")
     
     args = parser.parse_args()
     main(args)

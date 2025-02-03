@@ -1,0 +1,25 @@
+{
+    "workflow_name": "comprehensive_evaluation",
+    "run_automatic_metrics": true,
+    "metrics": {
+        "standard_nlg": ["bleu", "rouge", "meteor", "perplexity"],
+        "task_specific": ["math", "logic", "qa"],
+        "human_evaluation": true
+    },
+    "perplexity_config": {
+        "stride": 512,
+        "batch_size": 4,
+        "sample_length": 1000,
+        "num_samples": 5
+    },
+    "human_evaluation_criteria": {
+        "correctness": "1-5 scale for factual accuracy",
+        "coherence": "1-5 scale for logical flow",
+        "completeness": "1-5 scale for answer completeness"
+    },
+    "ab_testing": {
+        "enabled": true,
+        "confidence_level": 0.95,
+        "metrics_to_compare": ["accuracy", "step_completion"]
+    }
+}

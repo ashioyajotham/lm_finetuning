@@ -1,0 +1,25 @@
+{
+    "evaluation_template": {
+        "scoring_criteria": {
+            "correctness": {
+                "1": "Completely incorrect",
+                "2": "Mostly incorrect",
+                "3": "Partially correct",
+                "4": "Mostly correct",
+                "5": "Completely correct"
+            },
+            "step_by_step": {
+                "1": "No clear steps",
+                "2": "Steps unclear/illogical",
+                "3": "Basic steps present",
+                "4": "Clear logical steps",
+                "5": "Perfect step progression"
+            }
+        },
+        "feedback_prompts": [
+            "Did the model show clear reasoning?",
+            "Were the calculations accurate?",
+            "Was the final answer correct?"
+        ]
+    }
+}
