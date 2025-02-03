@@ -1,5 +1,43 @@
 """
 Evaluation utilities for language model assessment.
+
+This module provides comprehensive evaluation tools for language models, including:
+1. Standard NLG metrics (BLEU, ROUGE, METEOR)
+2. Mathematical reasoning assessment
+3. Logical reasoning evaluation
+4. Chain-of-thought analysis
+5. Human-in-the-loop evaluation
+6. A/B testing framework
+
+Key Features:
+- Perplexity calculation
+- Step-by-step solution evaluation
+- Category-specific performance tracking
+- Human evaluation integration
+- Statistical significance testing
+
+Usage:
+    evaluator = ModelEvaluator(model, tokenizer)
+    
+    # Mathematical reasoning
+    math_results = evaluator.evaluate_mathematical_reasoning(examples)
+    
+    # Logical reasoning
+    logic_results = evaluator.evaluate_logical_reasoning(examples)
+    
+    # Human evaluation
+    human_eval = HumanEvaluation()
+    human_eval.add_evaluation(generated_text, score, feedback, criteria)
+    
+    # A/B Testing
+    ab_tester = ABTesting(model_a, model_b, tokenizer)
+    results = ab_tester.run_test(test_cases, metrics)
+
+Components:
+- NLGMetrics: Standard natural language generation metrics
+- ABTesting: Framework for comparing model variations
+- HumanEvaluation: Structure for human feedback collection
+- ModelEvaluator: Core evaluation functionality
 """
 
 import torch
@@ -18,7 +56,18 @@ import pandas as pd
 from scipy import stats
 
 class NLGMetrics:
-    """Standard NLG metrics implementation"""
+    """
+    Standard NLG metrics implementation.
+    
+    Provides computation of:
+    - BLEU score for translation quality
+    - ROUGE score for summary evaluation
+    - METEOR score for semantic similarity
+    
+    Example:
+        metrics = NLGMetrics()
+        scores = metrics.compute_metrics(generated_text, reference_text)
+    """
     def __init__(self):
         self.rouge_scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
         self.meteor = evaluate.load('meteor')  # Change this line
@@ -32,7 +81,19 @@ class NLGMetrics:
         }
 
 class ABTesting:
-    """A/B testing framework for model comparison"""
+    """
+    A/B testing framework for model comparison.
+    
+    Features:
+    - Parallel evaluation of two models
+    - Statistical significance testing
+    - Multiple metric comparison
+    - Confidence interval calculation
+    
+    Example:
+        tester = ABTesting(model_a, model_b, tokenizer)
+        results = tester.run_test(test_cases, [accuracy_metric, fluency_metric])
+    """
     def __init__(self, model_a, model_b, tokenizer):
         self.model_a = model_a
         self.model_b = model_b
@@ -55,7 +116,24 @@ class ABTesting:
         return {'t_statistic': t_stat, 'p_value': p_value}
 
 class HumanEvaluation:
-    """Human-in-the-loop evaluation framework"""
+    """
+    Human-in-the-loop evaluation framework.
+    
+    Provides:
+    - Structured feedback collection
+    - Scoring criteria templates
+    - Aggregate statistics
+    - Result persistence
+    
+    Example:
+        evaluator = HumanEvaluation()
+        evaluator.add_evaluation(
+            generated_text="The model output",
+            human_score=4,
+            feedback="Clear reasoning but minor calculation error",
+            criteria={"accuracy": 4, "coherence": 5}
+        )
+    """
     def __init__(self, save_path: str = "human_evaluations.json"):
         self.save_path = save_path
         self.evaluations = []
@@ -88,6 +166,30 @@ class HumanEvaluation:
         }
 
 class ModelEvaluator:
+    """
+    Comprehensive model evaluation framework.
+    
+    Core Features:
+    - Perplexity calculation
+    - Mathematical reasoning assessment
+    - Logical reasoning evaluation
+    - Solution step analysis
+    - Category performance tracking
+    
+    Methods:
+        calculate_perplexity: Compute model perplexity on input text
+        evaluate_mathematical_reasoning: Assess math problem solving
+        evaluate_logical_reasoning: Check logical deduction
+        evaluate_chain_of_thought: Analyze reasoning steps
+        structured_evaluation: Run complete evaluation workflow
+    
+    Example:
+        evaluator = ModelEvaluator(model, tokenizer)
+        results = evaluator.structured_evaluation(
+            test_cases,
+            workflow_config
+        )
+    """
     def __init__(self, model, tokenizer, device="cuda" if torch.cuda.is_available() else "cpu"):
         self.model = model
         self.tokenizer = tokenizer

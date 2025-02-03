@@ -155,6 +155,11 @@ def main(args):
         # Load workflow configuration
         with open(args.eval_workflow) as f:
             workflow_config = json.load(f)
+        
+        if args.human_eval_template:
+            with open(args.human_eval_template) as f:
+                human_eval_config = json.load(f)
+                workflow_config['human_evaluation_template'] = human_eval_config
             
         # Load evaluation examples
         with open(args.eval_file) as f:
@@ -163,12 +168,24 @@ def main(args):
         # Run structured evaluation
         results = trainer.run_structured_evaluation(eval_examples, workflow_config)
         
-        # Print detailed results
+        # Print detailed results in a structured way
         print("\nEvaluation Results:")
-        for category, metrics in results.items():
-            print(f"\n{category.upper()}:")
-            for metric, value in metrics.items():
-                print(f"  {metric}: {value:.4f}")
+        for category in ['automatic_metrics', 'task_specific', 'examples']:
+            if category in results:
+                print(f"\n{category.upper()}:")
+                if isinstance(results[category], dict):
+                    for metric, value in results[category].items():
+                        if isinstance(value, float):
+                            print(f"  {metric}: {value:.4f}")
+                        else:
+                            print(f"  {metric}: {value}")
+                elif isinstance(results[category], list):
+                    print(f"  Number of examples: {len(results[category])}")
+        
+        # Print timestamps
+        if 'timestamps' in results:
+            print(f"\nEvaluation started: {results['timestamps']['start']}")
+            print(f"Evaluation ended: {results['timestamps']['end']}")
             
     elif args.mode == "generate":
         # Add generation configuration
@@ -267,6 +284,9 @@ Examples:
     parser.add_argument("--eval_workflow", type=str,
                       help="Path to evaluation workflow configuration",
                       default="evaluation_workflows/default_workflow.json")
+    parser.add_argument("--human_eval_template", type=str,
+                      help="Path to human evaluation template file",
+                      default="evaluation_workflows/human_eval_template.json")
     
     args = parser.parse_args()
     main(args)
