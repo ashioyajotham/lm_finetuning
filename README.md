@@ -1,57 +1,125 @@
-# Language Model Fine-tuning Project
+# Language Model Fine-tuning Framework
 
-## Setup Instructions
+A robust framework for fine-tuning and evaluating language models with integrated visualization tools.
 
-1. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
+## Project Structure
+```
+lm_finetuning/
+├── src/
+│   ├── __init__.py
+│   ├── data_processor.py
+│   ├── model_utils.py
+│   ├── trainer.py
+│   └── visualization.py
+├── config/
+│   └── __init__.py
+├── logs/
+│   └── .gitkeep
+├── results/
+│   └── .gitkeep
+├── train.py
+├── requirements.txt
+└── README.md
 ```
 
-2. Install dependencies:
+## Workflow
+
+```mermaid
+graph TD
+    A[Data Input] --> B[DataProcessor]
+    B --> C[Model Loading]
+    C --> D[Training Loop]
+    D --> E[Visualization]
+    E --> |TensorBoard| F[Training Metrics]
+    E --> |Wandb| F
+    D --> G[Checkpoints]
+    G --> H[Final Model]
+    H --> I[Text Generation]
+    
+    subgraph Visualization
+    E
+    F
+    end
+    
+    subgraph Training
+    D
+    G
+    end
+```
+
+## Features
+
+- **Flexible Model Support**: Compatible with HuggingFace Transformers models
+- **Visualization**: Integrated TensorBoard and Weights & Biases support
+- **Checkpoint Management**: Save and resume training sessions
+- **Custom Training**: Extended trainer with research metrics
+- **Structured Logging**: Comprehensive training metrics and model outputs
+
+## Quick Start
+
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the training script:
+2. Train a model:
 ```bash
-python train.py
+python train.py --mode train --model distilgpt2 --dataset wikitext --wandb
+```
+
+3. Generate text:
+```bash
+python train.py --mode generate --model_path ./results/final_model --prompt "Once upon a time"
 ```
 
 ## Configuration
 
-Edit `config.py` to modify:
-- Model selection (default: "gpt2")
-- Training parameters
-- Dataset selection
+### Training Arguments
+- `--mode`: train/continue/generate/evaluate
+- `--model`: HuggingFace model name
+- `--dataset`: Training dataset name
+- `--wandb`: Enable W&B logging
+- `--continue_from`: Checkpoint path for continuing training
 
-## Available Datasets
+### Generation Arguments
+- `--model_path`: Path to trained model
+- `--prompt`: Generation prompt
+- `--max_length`: Maximum generation length
+- `--temperature`: Sampling temperature
+- `--top_k`: Top-k sampling parameter
+- `--top_p`: Top-p sampling parameter
 
-Some recommended datasets from Hugging Face:
-- "wikitext" (wikipedia text)
-- "bookcorpus"
-- "squad" (question-answering)
-- "glue"
+## Visualization
 
-## Example Configuration
+### Weights & Biases Integration
+- Run names follow format: `distilgpt2-20250131-163706`
+- Tracks:
+  - Training metrics
+  - Model architecture
+  - Generated samples
+  - Attention patterns
+  - Embedding space visualization
 
-To use a different dataset, modify `config.py`:
-```python
-@dataclass
-class DataConfig:
-    dataset_name: str = "wikitext"
-    dataset_config_name: str = "wikitext-2-raw-v1"
-    max_length: int = 128
-    train_test_split: float = 0.1
+### TensorBoard Support
+- Real-time metric tracking
+- Loss curves
+- Learning rate schedules
+- Text generation samples
 
-@dataclass
-class TrainingConfig:
-    model_name: str = "gpt2"
-    batch_size: int = 4
-    num_train_epochs: int = 3
-    learning_rate: float = 5e-5
-    weight_decay: float = 0.0
-    logging_steps: int = 100
-    save_steps: int = 1000
-    output_dir: str = "output"
-```
+## Directory Structure Details
+
+- `src/`: Core implementation modules
+  - `data_processor.py`: Dataset handling and preprocessing
+  - `model_utils.py`: Model loading and configuration
+  - `trainer.py`: Custom training loop implementation
+  - `visualization.py`: Visualization and logging utilities
+- `config/`: Configuration classes and constants
+- `logs/`: TensorBoard logs
+- `results/`: Trained models and checkpoints
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit changes
+4. Submit pull request
